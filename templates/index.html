@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Image Gallery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🚀 Cloud Image Gallery</h1>
+    </div>
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="upload-section">
+        <form class="upload-form" method="post" action="/upload" enctype="multipart/form-data">
+            <input type="file" name="file" accept="image/*" required>
+            <button type="submit">Upload Image</button>
+        </form>
+    </div>
+
+    <div class="gallery">
+        {% if images %}
+        {% for image in images %}
+        <div class="image-card">
+            <img src="{{ image.url }}" alt="{{ image.name }}" loading="lazy">
+            <div class="image-info">
+                <div class="image-name">{{ image.name }}</div>
+                <div class="image-meta">
+                    {{ (image.size / 1024)|round }} KB<br>
+                    {{ image.date }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <h3>No images</h3>
+            <p>Upload your image to see it here!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>
