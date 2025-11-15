@@ -12,6 +12,7 @@ boto3 = "^1.40.74"
 python-dotenv = "^1.2.1"
 pillow = "^12.0.0"
 gunicorn = "^23.0.0"
+flask-httpauth = "^4.8.0"
 
 
 [tool.poetry.group.dev.dependencies]

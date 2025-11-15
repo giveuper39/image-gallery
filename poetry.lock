@@ -163,6 +163,20 @@ async = ["asgiref (>=3.2)"]
 dotenv = ["python-dotenv"]
 
 [[package]]
+name = "flask-httpauth"
+version = "4.8.0"
+description = "HTTP authentication for Flask routes"
+optional = false
+python-versions = "*"
+files = [
+    {file = "Flask-HTTPAuth-4.8.0.tar.gz", hash = "sha256:66568a05bc73942c65f1e2201ae746295816dc009edd84b482c44c758d75097a"},
+    {file = "Flask_HTTPAuth-4.8.0-py3-none-any.whl", hash = "sha256:a58fedd09989b9975448eef04806b096a3964a7feeebc0a78831ff55685b62b0"},
+]
+
+[package.dependencies]
+flask = "*"
+
+[[package]]
 name = "gunicorn"
 version = "23.0.0"
 description = "WSGI HTTP Server for UNIX"
@@ -617,4 +631,4 @@ watchdog = ["watchdog (>=2.3)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "4e9d1da7710917815ea9bf013f2e8905dd764f3ca11ea52815ef9d85b5a69f86"
+content-hash = "6e6b2b196462264a3746032745343898c18f5ad9d7c0ff04df821c7eb216d8b8"

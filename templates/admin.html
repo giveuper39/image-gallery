@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Image Gallery</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🔧 Admin Panel</h1>
+        <a href="{{ url_for('main.index') }}">← Back to Gallery</a>
+    </div>
+
+    <div class="flash-messages">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+
+    <div class="admin-controls">
+        <div class="status-card">
+            <h3>📊 Gallery Stats</h3>
+            <p>Total images: <strong>{{ upload_count }}</strong></p>
+        </div>
+
+        <div class="auth-control-card">
+            <h3>🔐 Upload Authorization</h3>
+            <div class="current-status {% if auth_enabled %}status-enabled{% else %}status-disabled{% endif %}">
+                Current Status: <strong>{% if auth_enabled %}🔒 REQUIRED{% else %}🔓 OPEN{% endif %}</strong>
+            </div>
+
+            <p class="status-description">
+                {% if auth_enabled %}
+                Users must enter admin password to upload images.
+                {% else %}
+                Anyone can upload images without authentication.
+                {% endif %}
+            </p>
+
+            <form method="post" class="toggle-form">
+                {% if auth_enabled %}
+                <button type="submit" name="upload_auth" value="disable" class="btn btn-disable">
+                    🔓 Disable Upload Auth
+                </button>
+                <small>Allow public uploads without password</small>
+                {% else %}
+                <button type="submit" name="upload_auth" value="enable" class="btn btn-enable">
+                    🔒 Enable Upload Auth
+                </button>
+                <small>Require password for all uploads</small>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

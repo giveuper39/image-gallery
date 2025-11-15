@@ -1,14 +1,19 @@
 import io
 import logging
+import os
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from PIL import Image
 
-from image_gallery.utils import s3_client
+from image_gallery.utils import s3_client, auth_manager
 
 main_bp = Blueprint("main", __name__)
 LOG = logging.getLogger()
+auth = HTTPBasicAuth()
+users = {"admin": generate_password_hash(os.getenv("ADMIN_PASSWORD"))}
 
 
 @main_bp.route("/")
@@ -19,13 +24,35 @@ def index():
         flash(f"Error loading images: {str(e)}", "error")
         images = []
 
-    return render_template("index.html", images=images)
+    return render_template("index.html", images=images,
+                           upload_auth_enabled=auth_manager.is_upload_auth_enabled())
+
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and check_password_hash(users[username], password):
+        return username
 
 
 @main_bp.route("/upload", methods=["POST"])
 def upload_file():
-    if request.headers.get('X-Forwarded-For'):
-        client_ip = request.headers.get('X-Forwarded-For').split(',')[0]
+    if auth_manager.is_upload_auth_enabled():
+        auth_header = request.authorization
+        valid_credentials = (
+                auth_header
+                and auth_header.type == "basic"
+                and verify_password(auth_header.username, auth_header.password)
+        )
+
+        if not valid_credentials:
+            return (
+                "Login required for upload",
+                401,
+                {"WWW-Authenticate": 'Basic realm="Authentication Required"'}
+            )
+
+    if request.headers.get("X-Forwarded-For"):
+        client_ip = request.headers.get("X-Forwarded-For").split(",")[0]
     else:
         client_ip = request.remote_addr
 
@@ -62,6 +89,25 @@ def upload_file():
         flash("Invalid file type. Allowed: PNG, JPG, JPEG, GIF, WEBP", "error")
 
     return redirect(url_for("main.index"))
+
+
+@main_bp.route("/admin", methods=["GET", "POST"])
+@auth.login_required
+def admin_panel():
+    if request.method == "POST":
+        new_status = request.form.get("upload_auth") == "enable"
+        auth_manager.set_auth_status(new_status)
+        flash(
+            f"🔒 Upload authorization {'enabled' if new_status else 'disabled'}",
+            "success",
+        )
+
+    current_status = auth_manager.get_auth_status()
+    upload_count = len(s3_client.list_images())
+
+    return render_template(
+        "admin.html", auth_enabled=current_status, upload_count=upload_count
+    )
 
 
 @main_bp.route("/health")

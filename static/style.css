@@ -174,3 +174,94 @@ body {
         font-size: 2em;
     }
 }
+
+.admin-link {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.admin-link a {
+    background: #667eea;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 0.9em;
+}
+
+.admin-controls {
+    display: grid;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.status-card, .auth-control-card {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.current-status {
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: bold;
+    margin: 15px 0;
+}
+
+.status-enabled {
+    background: #ffeaa7;
+    color: #e17055;
+    border: 2px solid #fab1a0;
+}
+
+.status-disabled {
+    background: #55efc4;
+    color: #00b894;
+    border: 2px solid #00b894;
+}
+
+.status-description {
+    color: #666;
+    margin: 15px 0;
+}
+
+.toggle-form {
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-enable {
+    background: #e17055;
+    color: white;
+}
+
+.btn-enable:hover {
+    background: #d63031;
+}
+
+.btn-disable {
+    background: #00b894;
+    color: white;
+}
+
+.btn-disable:hover {
+    background: #00a085;
+}
+
+.toggle-form small {
+    display: block;
+    margin-top: 8px;
+    color: #666;
+    font-style: italic;
+}
