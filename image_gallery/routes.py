@@ -103,12 +103,34 @@ def admin_panel():
         )
 
     current_status = auth_manager.get_auth_status()
-    upload_count = len(s3_client.list_images())
+    try:
+        images = s3_client.list_images()
+    except Exception as e:
+        flash(f'Error loading images: {str(e)}', 'error')
+        images = []
 
-    return render_template(
-        "admin.html", auth_enabled=current_status, upload_count=upload_count
-    )
+    return render_template('admin.html', auth_enabled=current_status, images=images, upload_count=len(images))
 
+
+@main_bp.route('/admin/delete', methods=['POST'])
+@auth.login_required
+def delete_images():
+    if request.form.get('delete_all') == 'true':
+        try:
+            deleted_count = s3_client.delete_all_images()
+            flash(f'🗑️ Deleted all {deleted_count} images', 'success')
+        except Exception as e:
+            flash(f'❌ Error deleting images: {str(e)}', 'error')
+
+    elif request.form.get('selected_images'):
+        selected_filenames = request.form.getlist('selected_images')
+        try:
+            deleted_count = s3_client.delete_selected_images(selected_filenames)
+            flash(f'🗑️ Deleted {deleted_count} images', 'success')
+        except Exception as e:
+            flash(f'❌ Error deleting images: {str(e)}', 'error')
+
+    return redirect(url_for('main.admin_panel'))
 
 @main_bp.route("/health")
 def health():

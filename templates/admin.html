@@ -57,7 +57,85 @@
                 {% endif %}
             </form>
         </div>
+        <div class="image-management-card">
+            <h3>🖼️ Image Management</h3>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h4>Quick Actions</h4>
+                <form method="post" action="{{ url_for('main.delete_images') }}"
+                      onsubmit="return confirm('⚠️ Are you sure you want to delete ALL images? This cannot be undone!');">
+                    <input type="hidden" name="delete_all" value="true">
+                    <button type="submit" class="btn btn-danger">
+                        🗑️ Delete All Images
+                    </button>
+                    <small>Immediately delete all images in the gallery</small>
+                </form>
+            </div>
+
+            <!-- Batch Delete -->
+            <div class="batch-delete">
+                <h4>Batch Delete</h4>
+                <p>Select specific images to delete:</p>
+
+                <form method="post" action="{{ url_for('main.delete_images') }}" id="batchDeleteForm">
+                    <div class="images-list">
+                        {% for image in images %}
+                        <div class="image-checkbox-item">
+                            <label>
+                                <input type="checkbox" name="selected_images" value="{{ image.name }}">
+                                <img src="{{ image.url }}" alt="{{ image.name }}" class="thumbnail">
+                                <span class="image-info">
+                                        <strong>{{ image.name }}</strong><br>
+                                        <small>{{ (image.size / 1024)|round }} KB • {{ image.date }}</small><br>
+                                        <small>📡 {{ image.ip }}</small>
+                                    </span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="batch-actions">
+                        <button type="button" class="btn btn-secondary" onclick="selectAllImages()">
+                            📋 Select All
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="deselectAllImages()">
+                            📋 Deselect All
+                        </button>
+                        <button type="submit" class="btn btn-danger"
+                                onclick="return confirm('Delete selected images?');">
+                            🗑️ Delete Selected
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    function selectAllImages() {
+        const checkboxes = document.querySelectorAll('input[name="selected_images"]');
+        checkboxes.forEach(checkbox => checkbox.checked = true);
+    }
+
+    function deselectAllImages() {
+        const checkboxes = document.querySelectorAll('input[name="selected_images"]');
+        checkboxes.forEach(checkbox => checkbox.checked = false);
+    }
+
+    // Auto-confirm if all images are selected
+    document.getElementById('batchDeleteForm').addEventListener('submit', function (e) {
+        const checkboxes = document.querySelectorAll('input[name="selected_images"]');
+        const checked = document.querySelectorAll('input[name="selected_images"]:checked');
+
+        if (checked.length === checkboxes.length && checkboxes.length > 0) {
+            if (!confirm('⚠️ You are about to delete ALL images. Continue?')) {
+                e.preventDefault();
+            }
+        }
+    });
+</script>
+
 </body>
 </html>

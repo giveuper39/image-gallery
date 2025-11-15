@@ -66,3 +66,42 @@ def list_images() -> List[Dict]:
 def allowed_file(filename: str) -> bool:
     allowed_extensions = {"png", "jpg", "jpeg", "gif", "webp"}
     return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
+
+
+def delete_all_images():
+    s3 = get_s3_client()
+    bucket_name = os.getenv('S3_BUCKET_NAME')
+
+    response = s3.list_objects_v2(Bucket=bucket_name)
+
+    if 'Contents' not in response:
+        return 0
+
+    # Delete all objects
+    objects_to_delete = [{'Key': obj['Key']} for obj in response['Contents']]
+
+    delete_response = s3.delete_objects(
+        Bucket=bucket_name,
+        Delete={'Objects': objects_to_delete}
+    )
+
+    deleted_count = len(delete_response.get('Deleted', []))
+    return deleted_count
+
+
+def delete_selected_images(filenames):
+    if not filenames:
+        return 0
+
+    s3 = get_s3_client()
+    bucket_name = os.getenv('S3_BUCKET_NAME')
+
+    objects_to_delete = [{'Key': filename} for filename in filenames]
+    delete_response = s3.delete_objects(
+        Bucket=bucket_name,
+        Delete={'Objects': objects_to_delete}
+    )
+
+    deleted_count = len(delete_response.get('Deleted', []))
+    return deleted_count
+
