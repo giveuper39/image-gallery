@@ -1,4 +1,5 @@
 import io
+import logging
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from werkzeug.utils import secure_filename
@@ -7,6 +8,7 @@ from PIL import Image
 from image_gallery.utils import s3_client
 
 main_bp = Blueprint("main", __name__)
+LOG = logging.getLogger()
 
 
 @main_bp.route("/")
@@ -22,6 +24,11 @@ def index():
 
 @main_bp.route("/upload", methods=["POST"])
 def upload_file():
+    if request.headers.get('X-Forwarded-For'):
+        client_ip = request.headers.get('X-Forwarded-For').split(',')[0]
+    else:
+        client_ip = request.remote_addr
+
     if "file" not in request.files:
         flash("No file selected", "error")
         return redirect(url_for("main.index"))
@@ -47,8 +54,9 @@ def upload_file():
         file_data = output.getvalue()
         filename = secure_filename(file.filename)
 
-        s3_client.upload_to_s3(file_data, filename)
+        s3_client.upload_to_s3(file_data, filename, client_ip)
         flash(f"Uploaded {filename}", "success")
+        LOG.info("Uploaded %s from %s", filename, client_ip)
 
     else:
         flash("Invalid file type. Allowed: PNG, JPG, JPEG, GIF, WEBP", "error")

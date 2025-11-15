@@ -39,6 +39,8 @@
                 <div class="image-meta">
                     {{ (image.size / 1024)|round }} KB<br>
                     {{ image.date }}
+                    <br>
+                    <span class="uploader-ip">📡 Uploaded from: {{ image.ip }}</span>
                 </div>
             </div>
         </div>

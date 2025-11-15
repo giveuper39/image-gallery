@@ -1,8 +1,11 @@
+import logging
 import os
 from typing import List, Dict
 
 import boto3
 from botocore.client import Config
+
+LOG = logging.getLogger(__name__)
 
 
 def get_s3_client():
@@ -23,14 +26,14 @@ def get_s3_client():
     )
 
 
-def upload_to_s3(file_data: bytes, filename: str):
+def upload_to_s3(file_data: bytes, filename: str, ip: str):
     s3 = get_s3_client()
-    boto3.set_stream_logger()
     bucket_name = os.getenv("S3_BUCKET_NAME")
     s3.put_object(
         Bucket=bucket_name,
         Key=filename,
-        Body=file_data
+        Body=file_data,
+        Metadata={"ip": ip}
     )
 
 
@@ -42,6 +45,13 @@ def list_images() -> List[Dict]:
         response = s3.list_objects_v2(Bucket=bucket_name)
         if "Contents" in response:
             for item in response["Contents"]:
+                head_response = s3.head_object(
+                    Bucket=bucket_name,
+                    Key=item["Key"]
+                )
+                uploader_ip = head_response.get("Metadata", {}
+                                                ).get("Ip", "Unknown")
+
                 url = s3.generate_presigned_url(
                     "get_object",
                     Params={"Bucket": bucket_name, "Key": item["Key"]},
@@ -54,6 +64,7 @@ def list_images() -> List[Dict]:
                         "size": item["Size"],
                         "date":
                             item["LastModified"].strftime("%Y-%m-%d %H:%M:%S"),
+                        "ip": uploader_ip
                     }
                 )
     except Exception as e:

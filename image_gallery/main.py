@@ -5,7 +5,6 @@ import os
 import logging
 
 
-
 def create_app():
     base_dir = os.path.abspath(os.path.dirname(__file__))
     template_dir = os.path.join(base_dir, "..", "templates")
@@ -33,7 +32,7 @@ def create_app():
 
 
 app = create_app()
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 LOG = logging.getLogger(__name__)
 
