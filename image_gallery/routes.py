@@ -61,25 +61,29 @@ def upload_file():
         return redirect(url_for("main.index"))
 
     file = request.files["file"]
-    if file.filename == "":
+    filename = secure_filename(file.filename)
+    if filename == "":
         flash("No file selected", "error")
         return redirect(url_for("main.index"))
 
-    if file and s3_client.allowed_file(file.filename):
-        image = Image.open(file.stream)
+    if file and s3_client.allowed_file(filename):
+        file_extension = filename.lower().split('.')[-1]
+        if file_extension == 'gif':
+            file_data = file.read()
+        else:
+            image = Image.open(file.stream)
 
-        if image.mode in ("RGBA", "P"):
-            image = image.convert("RGB")
+            if image.mode in ("RGBA", "P"):
+                image = image.convert("RGB")
 
-        if image.width > 1200:
-            ratio = 1200 / image.width
-            new_size = (1200, int(image.height * ratio))
-            image = image.resize(new_size, Image.Resampling.LANCZOS)
+            if image.width > 1200:
+                ratio = 1200 / image.width
+                new_size = (1200, int(image.height * ratio))
+                image = image.resize(new_size, Image.Resampling.LANCZOS)
 
-        output = io.BytesIO()
-        image.save(output, format="JPEG", quality=85, optimize=True)
-        file_data = output.getvalue()
-        filename = secure_filename(file.filename)
+            output = io.BytesIO()
+            image.save(output, format="JPEG", quality=85, optimize=True)
+            file_data = output.getvalue()
 
         s3_client.upload_to_s3(file_data, filename, client_ip)
         flash(f"Uploaded {filename}", "success")

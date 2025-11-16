@@ -8,12 +8,11 @@
 </head>
 <body>
 <div class="container">
+    <!-- Fixed header - remove duplicate div -->
     <div class="header">
-        <div class="header">
-            <h1>🚀 Cloud Image Gallery</h1>
-            <div class="admin-link">
-                <a href="{{ url_for('main.admin_panel') }}">🔧 Admin</a>
-            </div>
+        <h1>🚀 Cloud Image Gallery</h1>
+        <div class="admin-link">
+            <a href="{{ url_for('main.admin_panel') }}">🔧 Admin</a>
         </div>
     </div>
 
@@ -48,7 +47,15 @@
         {% if images %}
         {% for image in images %}
         <div class="image-card">
-            <img src="{{ image.url }}" alt="{{ image.name }}" loading="lazy">
+            <img src="{{ image.url }}"
+                 alt="{{ image.name }}"
+                 loading="lazy"
+                 class="gallery-thumbnail">
+
+            {% if image.name.lower().endswith('.gif') %}
+            <div class="gif-badge">GIF</div>
+            {% endif %}
+
             <div class="image-info">
                 <div class="image-name">{{ image.name }}</div>
                 <div class="image-meta">
@@ -68,5 +75,13 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+    document.querySelectorAll('.gallery-thumbnail').forEach(img => {
+        img.addEventListener('click', function() {
+            this.classList.toggle('expanded');
+        });
+    });
+</script>
 </body>
 </html>
