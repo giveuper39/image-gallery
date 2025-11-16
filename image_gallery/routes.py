@@ -24,8 +24,9 @@ def index():
         flash(f"Error loading images: {str(e)}", "error")
         images = []
 
+    upload_auth_enabled = auth_manager.is_upload_auth_enabled()
     return render_template("index.html", images=images,
-                           upload_auth_enabled=auth_manager.is_upload_auth_enabled())
+                           upload_auth_enabled=upload_auth_enabled)
 
 
 @auth.verify_password
@@ -102,7 +103,8 @@ def admin_panel():
         new_status = request.form.get("upload_auth") == "enable"
         auth_manager.set_auth_status(new_status)
         flash(
-            f"🔒 Upload authorization {'enabled' if new_status else 'disabled'}",
+            f"🔒 Upload authorization"
+            f"{'enabled' if new_status else 'disabled'}",
             "success",
         )
 
@@ -113,7 +115,10 @@ def admin_panel():
         flash(f'Error loading images: {str(e)}', 'error')
         images = []
 
-    return render_template('admin.html', auth_enabled=current_status, images=images, upload_count=len(images))
+    return render_template('admin.html',
+                           auth_enabled=current_status,
+                           images=images,
+                           upload_count=len(images))
 
 
 @main_bp.route('/admin/delete', methods=['POST'])
@@ -127,14 +132,15 @@ def delete_images():
             flash(f'❌ Error deleting images: {str(e)}', 'error')
 
     elif request.form.get('selected_images'):
-        selected_filenames = request.form.getlist('selected_images')
+        selected = request.form.getlist('selected_images')
         try:
-            deleted_count = s3_client.delete_selected_images(selected_filenames)
+            deleted_count = s3_client.delete_selected_images(selected)
             flash(f'🗑️ Deleted {deleted_count} images', 'success')
         except Exception as e:
             flash(f'❌ Error deleting images: {str(e)}', 'error')
 
     return redirect(url_for('main.admin_panel'))
+
 
 @main_bp.route("/health")
 def health():

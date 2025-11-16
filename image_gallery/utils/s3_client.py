@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 import os
 from typing import List, Dict
 
@@ -29,7 +30,15 @@ def get_s3_client():
 def upload_to_s3(file_data: bytes, filename: str, ip: str):
     s3 = get_s3_client()
     bucket_name = os.getenv("S3_BUCKET_NAME")
-    s3.put_object(Bucket=bucket_name, Key=filename, Body=file_data, Metadata={"ip": ip})
+    content_type, _ = mimetypes.guess_type(filename)
+    if content_type is None:
+        content_type = "application/octet-stream"
+
+    s3.put_object(Bucket=bucket_name,
+                  Key=filename,
+                  Body=file_data,
+                  Metadata={"ip": ip},
+                  ContentType=content_type)
 
 
 def list_images() -> List[Dict]:
@@ -40,8 +49,11 @@ def list_images() -> List[Dict]:
         response = s3.list_objects_v2(Bucket=bucket_name)
         if "Contents" in response:
             for item in response["Contents"]:
-                head_response = s3.head_object(Bucket=bucket_name, Key=item["Key"])
-                uploader_ip = head_response.get("Metadata", {}).get("Ip", "Unknown")
+                head_response = s3.head_object(Bucket=bucket_name,
+                                               Key=item["Key"])
+                uploader_ip = head_response.get("Metadata", {}).get(
+                    "Ip", "Unknown"
+                )
 
                 url = s3.generate_presigned_url(
                     "get_object",
@@ -53,7 +65,8 @@ def list_images() -> List[Dict]:
                         "name": item["Key"],
                         "url": url,
                         "size": item["Size"],
-                        "date": item["LastModified"].strftime("%Y-%m-%d %H:%M:%S"),
+                        "date":
+                            item["LastModified"].strftime("%Y-%m-%d %H:%M:%S"),
                         "ip": uploader_ip,
                     }
                 )
@@ -65,7 +78,8 @@ def list_images() -> List[Dict]:
 
 def allowed_file(filename: str) -> bool:
     allowed_extensions = {"png", "jpg", "jpeg", "gif", "webp"}
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in allowed_extensions
+    return ("." in filename
+            and filename.rsplit(".", 1)[1].lower() in allowed_extensions)
 
 
 def delete_all_images():
@@ -104,4 +118,3 @@ def delete_selected_images(filenames):
 
     deleted_count = len(delete_response.get('Deleted', []))
     return deleted_count
-
